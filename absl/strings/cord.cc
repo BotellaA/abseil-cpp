@@ -52,13 +52,13 @@ using ::absl::cord_internal::CordRepSubstring;
 
 // Various representations that we allow
 enum CordRepKind {
-  CONCAT        = 0,
-  EXTERNAL      = 1,
-  SUBSTRING     = 2,
+  CONCAT = 0,
+  EXTERNAL = 1,
+  SUBSTRING = 2,
 
   // We have different tags for different sized flat arrays,
   // starting with FLAT
-  FLAT          = 3,
+  FLAT = 3,
 };
 
 namespace {
@@ -97,9 +97,7 @@ void DeallocateExternal(CordRepExternal* p, size_t releaser_size) {
 }
 
 // Returns a pointer to the type erased releaser for the given CordRepExternal.
-void* GetExternalReleaser(CordRepExternal* rep) {
-  return rep + 1;
-}
+void* GetExternalReleaser(CordRepExternal* rep) { return rep + 1; }
 
 }  // namespace
 
@@ -284,7 +282,8 @@ inline CordRep* Ref(CordRep* rep) {
 __attribute__((preserve_most))
 #pragma clang diagnostic pop
 #endif
-static void UnrefInternal(CordRep* rep) {
+static void
+UnrefInternal(CordRep* rep) {
   assert(rep != nullptr);
 
   absl::InlinedVector<CordRep*, kInlinedVectorSize> pending;
@@ -438,9 +437,7 @@ static CordRep* NewFlat(size_t length_hint) {
 
 // Create a new tree out of the specified array.
 // The returned node has a refcount of 1.
-static CordRep* NewTree(const char* data,
-                        size_t length,
-                        size_t alloc_hint) {
+static CordRep* NewTree(const char* data, size_t length, size_t alloc_hint) {
   if (length == 0) return nullptr;
   absl::FixedArray<CordRep*> reps((length - 1) / kMaxFlatLength + 1);
   size_t n = 0;
@@ -493,10 +490,10 @@ static CordRep* NewSubstring(CordRep* child, size_t offset, size_t length) {
 // --------------------------------------------------------------------
 // Cord::InlineRep functions
 
-// This will trigger LNK2005 in MSVC.
-#ifndef COMPILER_MSVC
-const unsigned char Cord::InlineRep::kMaxInline;
-#endif  // COMPILER_MSVC
+// // This will trigger LNK2005 in MSVC.
+// #ifndef COMPILER_MSVC
+// const unsigned char Cord::InlineRep::kMaxInline;
+// #endif  // COMPILER_MSVC
 
 inline void Cord::InlineRep::set_data(const char* data, size_t n,
                                       bool nullify_tail) {
@@ -711,8 +708,7 @@ Cord::Cord(T&& src) {
       // String is short: copy data to avoid external block overhead.
       src.size() <= kMaxBytesToCopy ||
       // String is wasteful: copy data to avoid pinning too much unused memory.
-      src.size() < src.capacity() / 2
-  ) {
+      src.size() < src.capacity() / 2) {
     if (src.size() <= InlineRep::kMaxInline) {
       contents_.set_data(src.data(), src.size(), false);
     } else {
@@ -738,19 +734,14 @@ template Cord::Cord(std::string&& src);
 
 // The destruction code is separate so that the compiler can determine
 // that it does not need to call the destructor on a moved-from Cord.
-void Cord::DestroyCordSlow() {
-  Unref(VerifyTree(contents_.tree()));
-}
+void Cord::DestroyCordSlow() { Unref(VerifyTree(contents_.tree())); }
 
 // --------------------------------------------------------------------
 // Mutators
 
-void Cord::Clear() {
-  Unref(contents_.clear());
-}
+void Cord::Clear() { Unref(contents_.clear()); }
 
 Cord& Cord::operator=(absl::string_view src) {
-
   const char* data = src.data();
   size_t length = src.size();
   CordRep* tree = contents_.tree();
@@ -844,9 +835,7 @@ void Cord::InlineRep::AppendArray(const char* src_data, size_t src_size) {
   set_tree(Concat(root, NewTree(src_data, src_size, length - src_size)));
 }
 
-inline CordRep* Cord::TakeRep() const& {
-  return Ref(contents_.tree());
-}
+inline CordRep* Cord::TakeRep() const& { return Ref(contents_.tree()); }
 
 inline CordRep* Cord::TakeRep() && {
   CordRep* rep = contents_.tree();
@@ -2034,9 +2023,7 @@ std::ostream& operator<<(std::ostream& out, const Cord& cord) {
 namespace strings_internal {
 size_t CordTestAccess::FlatOverhead() { return kFlatOverhead; }
 size_t CordTestAccess::MaxFlatLength() { return kMaxFlatLength; }
-size_t CordTestAccess::FlatTagToLength(uint8_t tag) {
-  return TagToLength(tag);
-}
+size_t CordTestAccess::FlatTagToLength(uint8_t tag) { return TagToLength(tag); }
 uint8_t CordTestAccess::LengthToTag(size_t s) {
   ABSL_INTERNAL_CHECK(s <= kMaxFlatLength, absl::StrCat("Invalid length ", s));
   return AllocatedSizeToTag(s + kFlatOverhead);

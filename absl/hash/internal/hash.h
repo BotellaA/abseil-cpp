@@ -41,13 +41,13 @@
 #include "absl/base/internal/endian.h"
 #include "absl/base/port.h"
 #include "absl/container/fixed_array.h"
+#include "absl/hash/internal/city.h"
 #include "absl/meta/type_traits.h"
 #include "absl/numeric/int128.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
 #include "absl/types/variant.h"
 #include "absl/utility/utility.h"
-#include "absl/hash/internal/city.h"
 
 namespace absl {
 ABSL_NAMESPACE_BEGIN
@@ -377,7 +377,7 @@ template <typename H, typename... Ts>
 // This SFINAE gets MSVC confused under some conditions. Let's just disable it
 // for now.
 H
-#else  // _MSC_VER
+#else   // _MSC_VER
 typename std::enable_if<absl::conjunction<is_hashable<Ts>...>::value, H>::type
 #endif  // _MSC_VER
 AbslHashValue(H hash_state, const std::tuple<Ts...>& t) {
@@ -713,8 +713,7 @@ struct is_hashable
     : std::integral_constant<bool, HashSelect::template Apply<T>::value> {};
 
 // CityHashState
-class ABSL_DLL CityHashState
-    : public HashStateBase<CityHashState> {
+class ABSL_DLL CityHashState : public HashStateBase<CityHashState> {
   // absl::uint128 is not an alias or a thin wrapper around the intrinsic.
   // We use the intrinsic when available to improve performance.
 #ifdef ABSL_HAVE_INTRINSIC_INT128
@@ -724,8 +723,7 @@ class ABSL_DLL CityHashState
 #endif  // ABSL_HAVE_INTRINSIC_INT128
 
   static constexpr uint64_t kMul =
-      sizeof(size_t) == 4 ? uint64_t{0xcc9e2d51}
-                          : uint64_t{0x9ddfea08eb382d69};
+      sizeof(size_t) == 4 ? uint64_t{0xcc9e2d51} : uint64_t{0x9ddfea08eb382d69};
 
   template <typename T>
   using IntegralFastPath =
@@ -873,7 +871,8 @@ inline uint64_t CityHashState::CombineContiguousImpl(
     if (ABSL_PREDICT_FALSE(len > PiecewiseChunkSize())) {
       return CombineLargeContiguousImpl32(state, first, len);
     }
-    v = absl::hash_internal::CityHash32(reinterpret_cast<const char*>(first), len);
+    v = absl::hash_internal::CityHash32(reinterpret_cast<const char*>(first),
+                                        len);
   } else if (len >= 4) {
     v = Read4To8(first, len);
   } else if (len > 0) {
@@ -896,7 +895,8 @@ inline uint64_t CityHashState::CombineContiguousImpl(
     if (ABSL_PREDICT_FALSE(len > PiecewiseChunkSize())) {
       return CombineLargeContiguousImpl64(state, first, len);
     }
-    v = absl::hash_internal::CityHash64(reinterpret_cast<const char*>(first), len);
+    v = absl::hash_internal::CityHash64(reinterpret_cast<const char*>(first),
+                                        len);
   } else if (len > 8) {
     auto p = Read9To16(first, len);
     state = Mix(state, p.first);
