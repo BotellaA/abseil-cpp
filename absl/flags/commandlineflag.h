@@ -108,6 +108,10 @@ class CommandLineFlag {
     U u;
 
     Read(&u.value);
+    // allow retired flags to be "read", so we can report invalid access.
+    if (IsRetired()) {
+      return absl::nullopt;
+    }
     return std::move(u.value);
   }
 
@@ -129,7 +133,7 @@ class CommandLineFlag {
   // absl::CommandLineFlag::IsRetired()
   //
   // Returns true iff this object corresponds to retired flag.
-  virtual bool IsRetired() const { return false; }
+  virtual bool IsRetired() const;
 
   // absl::CommandLineFlag::DefaultValue()
   //
@@ -146,10 +150,7 @@ class CommandLineFlag {
   // Sets the value of the flag based on specified string `value`. If the flag
   // was successfully set to new value, it returns true. Otherwise, sets `error`
   // to indicate the error, leaves the flag unchanged, and returns false.
-  bool ParseFrom(absl::string_view value, std::string* error) {
-    return ParseFrom(value, flags_internal::SET_FLAGS_VALUE,
-                     flags_internal::kProgrammaticChange, *error);
-  }
+  bool ParseFrom(absl::string_view value, std::string* error);
 
  protected:
   ~CommandLineFlag() = default;

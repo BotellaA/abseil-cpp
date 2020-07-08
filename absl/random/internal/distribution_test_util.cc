@@ -72,9 +72,9 @@ DistributionMoments ComputeDistributionMoments(
 }
 
 std::ostream& operator<<(std::ostream& os, const DistributionMoments& moments) {
-  return os << absl::StrFormat<'f', 'f', 'f', 'f'>(
-             "mean=%f, stddev=%f, skewness=%f, kurtosis=%f", moments.mean,
-             std::sqrt(moments.variance), moments.skewness, moments.kurtosis);
+  return os << absl::StrFormat("mean=%f, stddev=%f, skewness=%f, kurtosis=%f",
+                               moments.mean, std::sqrt(moments.variance),
+                               moments.skewness, moments.kurtosis);
 }
 
 double InverseNormalSurvival(double x) {
